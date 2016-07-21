@@ -1,6 +1,7 @@
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
+var https = require('https');
 
 var LEX = require('letsencrypt-express').testing();
 var express = require('express');
@@ -17,6 +18,14 @@ var DocumentHandler = require('./lib/document_handler');
 var config = JSON.parse(fs.readFileSync('./config.js', 'utf8'));
 config.port = process.env.PORT || config.port || 7777;
 config.host = process.env.HOST || config.host || 'localhost';
+config.local = process.env.LOCAL || 'remote';
+
+if (config.local === 'local') {
+    var options = {
+        key: fs.readFileSync('certs/key.pem'),
+        cert: fs.readFileSync('certs/cert.pem')
+    };
+}
 
 // Set up the logger
 if (config.logging) {
@@ -163,25 +172,33 @@ app.use(connect_st({
 
 //http.createServer(app).listen(config.port, config.host);
 
-LEX.create({
-  configDir: './lesconfig'                 // ~/letsencrypt, /etc/letsencrypt, whatever you want
+if (config.local === 'local') {
+    http.createServer(app).listen(config.port);
+    winston.info('listening on ' + config.host + ':' + config.port);
+    if (config.local === 'secure') {
+        https.createServer(options, app).listen(config.port+1);
+        winston.info('listening on ' + config.host + ':' + config.port + 'and' + (config.port+1));
+    }
+} else {
+    LEX.create({
+    configDir: './lesconfig'                 // ~/letsencrypt, /etc/letsencrypt, whatever you want
 
-, onRequest: app                                    // your express app (or plain node http app)
+    , onRequest: app                                    // your express app (or plain node http app)
 
-, letsencrypt: null                                 // you can provide you own instance of letsencrypt
-                                                    // if you need to configure it (with an agreeToTerms
-                                                    // callback, for example)
+    , letsencrypt: null                                 // you can provide you own instance of letsencrypt
+                                                        // if you need to configure it (with an agreeToTerms
+                                                        // callback, for example)
 
-, approveRegistration: function (hostname, cb) {    // PRODUCTION MODE needs this function, but only if you want
-                                                    // automatic registration (usually not necessary)
-                                                    // renewals for registered domains will still be automatic
-    cb(null, {
-      domains: [yaste1337.appspot.com]
-    , email: 'me@rdprabhu.com'
-    , agreeTos: true              // you
+    , approveRegistration: function (hostname, cb) {    // PRODUCTION MODE needs this function, but only if you want
+                                                        // automatic registration (usually not necessary)
+                                                        // renewals for registered domains will still be automatic
+        cb(null, {
+        domains: [yaste1337.appspot.com]
+        , email: 'me@rdprabhu.com'
+        , agreeTos: true              // you
+        });
+    }
+    }).listen([config.port], [config.port+1], function () {
+        winston.info('listening on ' + config.host + ':' + config.port + 'and' + (config.port+1));
     });
-  }
-}).listen([config.port-1], [config.port], function () {
-    winston.info('listening on ' + config.host + ':' + config.port + 'and' + (config.port-1));
-});
-
+}
