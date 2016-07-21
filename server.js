@@ -129,15 +129,44 @@ app.use(route(function(router) {
   router.get('/raw/:id', function(request, response, next) {
     var skipExpire = !!config.documents[request.params.id];
     var key = request.params.id.split('.')[0];
+    token = request.headers['x-token'].toString();
+    if (documentHandler.validateToken(token, '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com' )) {
+        winston.warn('Failed authentication');
+        response.writeHead(403, { 'content-type': 'application/json' });
+        response.end(
+            JSON.stringify({ message: 'Failed authentication' })
+        );
+        return;
+    }
     return documentHandler.handleRawGet(key, response, skipExpire);
   });
   // add documents
   router.post('/documents', function(request, response, next) {
+    token = request.headers['x-token'].toString();
+    if (documentHandler.validateToken(token, '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com')) {
+        winston.warn('Failed authentication');
+        response.writeHead(403, { 'content-type': 'application/json' });
+        response.end(
+            JSON.stringify({ message: 'Failed authentication' })
+        );
+        return;
+    }
+    winston.info('Proceeding with post');
     return documentHandler.handlePost(request, response);
   });
   // get documents
   router.get('/documents/:id', function(request, response, next) {
     var skipExpire = !!config.documents[request.params.id];
+    console.dir(request.headers);
+    token = request.headers['x-token'].toString();
+    if (documentHandler.validateToken(token, '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com' )) {
+        winston.warn('Failed authentication');
+        response.writeHead(403, { 'content-type': 'application/json' });
+        response.end(
+            JSON.stringify({ message: 'Failed authentication' })
+        );
+        return;
+    }
     return documentHandler.handleGet(
       request.params.id,
       response,
@@ -172,14 +201,14 @@ app.use(connect_st({
 
 //http.createServer(app).listen(config.port, config.host);
 
-if (config.local === 'local') {
+if (config.local === 'remote') {
     http.createServer(app).listen(config.port);
     winston.info('listening on ' + config.host + ':' + config.port);
-    if (config.local === 'secure') {
-        https.createServer(options, app).listen(config.port+1);
-        winston.info('listening on ' + config.host + ':' + config.port + 'and' + (config.port+1));
-    }
-} else {
+} else if (config.local === 'local') {
+    http.createServer(app).listen(config.port);
+    https.createServer(options, app).listen(config.port+1);
+    winston.info('listening on ' + config.host + ':' + config.port + 'and' + (config.port+1));
+} else if (config.local === 'lex') {
     LEX.create({
     configDir: './lesconfig'                 // ~/letsencrypt, /etc/letsencrypt, whatever you want
 

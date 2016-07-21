@@ -1,7 +1,8 @@
 ///// represents a single document
 
-var haste_document = function() {
+var haste_document = function(xtoken) {
   this.locked = false;
+  this.dtoken = xtoken;
 };
 
 // Escapes HTML tag characters
@@ -16,8 +17,13 @@ haste_document.prototype.htmlEscape = function(s) {
 // Get this document from the server and lock it here
 haste_document.prototype.load = function(key, callback, lang) {
   var _this = this;
+  if (this == null) {
+      this.showMessage('Token empty', 'error');
+      return;
+  }
   $.ajax('/documents/' + key, {
     type: 'get',
+    headers: { 'x-token': this.dtoken },
     dataType: 'json',
     success: function(res) {
       _this.locked = true;
@@ -53,6 +59,10 @@ haste_document.prototype.load = function(key, callback, lang) {
 
 // Save this document to the server and lock it here
 haste_document.prototype.save = function(data, callback) {
+  if (this == null) {
+      this.showMessage('Token empty', 'error');
+      return false;
+  }
   if (this.locked) {
     return false;
   }
@@ -62,6 +72,7 @@ haste_document.prototype.save = function(data, callback) {
     type: 'post',
     data: data,
     dataType: 'json',
+    headers: { 'x-token': this.dtoken },
     contentType: 'application/json; charset=utf-8',
     success: function(res) {
       _this.locked = true;
@@ -94,6 +105,7 @@ var haste = function(appName, options) {
   this.$code = $('#box code');
   this.$linenos = $('#linenos');
   this.options = options;
+  this.token = options.token;
   this.configureShortcuts();
   this.configureButtons();
   // If twitter is disabled, hide the button
@@ -160,7 +172,7 @@ haste.prototype.configureKey = function(enable) {
 // and set up for a new one
 haste.prototype.newDocument = function(hideHistory) {
   this.$box.hide();
-  this.doc = new haste_document();
+  this.doc = new haste_document(this.token);
   if (!hideHistory) {
     window.history.pushState(null, this.appName, '/');
   }
@@ -221,7 +233,11 @@ haste.prototype.loadDocument = function(key) {
   var parts = key.split('.', 2);
   // Ask for what we want
   var _this = this;
-  _this.doc = new haste_document();
+  if (this.token == '') {
+      this.showMessage('Token empty', 'error');
+      return;
+  }
+  _this.doc = new haste_document(this.token);
   _this.doc.load(parts[0], function(ret) {
     if (ret) {
       _this.$code.html(ret.value);

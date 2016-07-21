@@ -15,11 +15,12 @@
 
 		<meta name="robots" content="noindex,nofollow"/>
 
-                <script src="https://apis.google.com/js/platform.js" async defer></script>
-                <meta name="google-signin-client_id" content="996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com">
+                <script src="https://apis.google.com/js/platform.js"></script>
+                <!--<meta name="google-signin-client_id" content="996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com">-->
 
 		<script type="text/javascript">
 			var app = null;
+			var id_token = '';
 			// Handle pops
 			var handlePop = function(evt) {
 				var path = evt.target.location.pathname;
@@ -34,21 +35,47 @@
 					try { handlePop(evt); } catch(err) { /* not loaded yet */ }
 				};
 			}, 1000);
+
 			// Construct app and load initial path
 			$(function() {
-				app = new haste('hastebin', { twitter: false });
-				handlePop({ target: window });
+                                gapi.load('auth2', function() {
+                                    auth2 = gapi.auth2.init({
+                                        client_id: '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com',
+                                    }).then(function() {
+                                        auth2 = gapi.auth2.getAuthInstance();
+                                        if (auth2.isSignedIn.get() == false) {
+                                            auth2.signIn().then(function() {
+                                                console.log(auth2.currentUser.get().getId());
+                                                var guser = auth2.currentUser.get().getBasicProfile();
+                                                console.dir(guser);
+                                                id_token = auth2.currentUser.get().getAuthResponse().id_token;
+                                                $("div.sout").html('<a href="#" onclick="signOut();">Sign out as '+ guser.getName() + ' </a>')
+                                            });
+                                        } else {
+                                                console.log(auth2.currentUser.get().getId());
+                                                var guser = auth2.currentUser.get().getBasicProfile();
+                                                console.dir(guser);
+                                                id_token = auth2.currentUser.get().getAuthResponse().id_token;
+                                                $("div.sout").html('<a href="#" onclick="signOut();">Sign out as '+ guser.getName() + ' </a>')
+                                        }
+                                    }).then(function() {
+                                            app = new haste('hastebin', { twitter: false, token: id_token });
+                                            handlePop({ target: window });
 
-				$('.dropdown dt span').click(function() {
-					$('.dropdown dd ul').toggle();
-				});
+                                            $('.dropdown dt span').click(function() {
+                                                    $('.dropdown dd ul').toggle();
+                                            });
 
-				$('.dropdown dd ul li > span').click(function() {
-					$('.dropdown dd ul').hide();
-					app.setTheme($(this).find('.value').text());
-				});
+                                            $('.dropdown dd ul li > span').click(function() {
+                                                    $('.dropdown dd ul').hide();
+                                                    app.setTheme($(this).find('.value').text());
+                                            });
 
-				app.setTheme($('.dropdown dd ul li:first > span .value').text());
+                                            app.setTheme($('.dropdown dd ul li:first > span .value').text());
+                                    })
+
+                                });
+
 			});
 		</script>
 
@@ -92,8 +119,17 @@
 					</dd>
 				</dl>
 			</div>
-                        <div id="box5">
-                                <div class="g-signin2" data-onsuccess="onSignIn"></div>
+                        <div id="box6">
+                                <div class="sout"> </div>
+                                <script>
+                                function signOut() {
+                                    var auth2 = gapi.auth2.getAuthInstance();
+                                    auth2.signOut().then(function () {
+                                    console.log('User signed out.');
+                                    window.location = "https://yelp.com";
+                                    });
+                                }
+                                </script>
                         </div>
 		</div>
 
