@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START server_yaml]
+# [START app_yaml]
 runtime: nodejs
 vm: true
-# [END server_yaml]
+# [END app_yaml]

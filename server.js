@@ -2,6 +2,9 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 
+var LEX = require('letsencrypt-express').testing();
+var express = require('express');
+
 var winston = require('winston');
 var connect = require('connect');
 var route = require('connect-route');
@@ -102,7 +105,8 @@ var documentHandler = new DocumentHandler({
   keyGenerator: keyGenerator
 });
 
-var app = connect();
+//var app = connect();
+var app = express();
 
 // Rate limit all requests
 if (config.rateLimits) {
@@ -157,6 +161,27 @@ app.use(connect_st({
   index: 'index.html'
 }));
 
-http.createServer(app).listen(config.port, config.host);
+//http.createServer(app).listen(config.port, config.host);
 
-winston.info('listening on ' + config.host + ':' + config.port);
+LEX.create({
+  configDir: './lesconfig'                 // ~/letsencrypt, /etc/letsencrypt, whatever you want
+
+, onRequest: app                                    // your express app (or plain node http app)
+
+, letsencrypt: null                                 // you can provide you own instance of letsencrypt
+                                                    // if you need to configure it (with an agreeToTerms
+                                                    // callback, for example)
+
+, approveRegistration: function (hostname, cb) {    // PRODUCTION MODE needs this function, but only if you want
+                                                    // automatic registration (usually not necessary)
+                                                    // renewals for registered domains will still be automatic
+    cb(null, {
+      domains: [yaste1337.appspot.com]
+    , email: 'me@rdprabhu.com'
+    , agreeTos: true              // you
+    });
+  }
+}).listen([config.port-1], [config.port], function () {
+    winston.info('listening on ' + config.host + ':' + config.port + 'and' + (config.port-1));
+});
+

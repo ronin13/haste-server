@@ -175,6 +175,7 @@ body,
 	position: relative;
 }
 
+
 #box4 .theme {
 	pointer-events: none;
 	background: url(function-icons.png);
@@ -186,6 +187,11 @@ body,
 	left: 5px;
 	top: 0;
 	cursor: pointer;
+}
+
+#box5 {
+	position: relative;
+	padding: 0px 5px;
 }
 
 dl.dropdown {

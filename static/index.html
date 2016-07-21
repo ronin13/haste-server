@@ -15,6 +15,9 @@
 
 		<meta name="robots" content="noindex,nofollow"/>
 
+                <script src="https://apis.google.com/js/platform.js" async defer></script>
+                <meta name="google-signin-client_id" content="996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com">
+
 		<script type="text/javascript">
 			var app = null;
 			// Handle pops
@@ -56,9 +59,12 @@
 
 		<div id="key">
 		  <div id="pointer" style="display:none;"></div>
-			<div id="box1">
-				<a href="/about.md" class="logo"></a>
-			</div>
+			<!--<div id="box1">-->
+				<!--<a href="/about.md" class="logo"></a>-->
+			<!--</div>-->
+                        <div id="box1">
+                                <a href="/about.md" class="logo"></a>
+                        </div>
 			<div id="box2">
 				<div class="save function"></div>
 				<div class="new function"></div>
@@ -86,6 +92,9 @@
 					</dd>
 				</dl>
 			</div>
+                        <div id="box5">
+                                <div class="g-signin2" data-onsuccess="onSignIn"></div>
+                        </div>
 		</div>
 
 		<div id="linenos"></div>
