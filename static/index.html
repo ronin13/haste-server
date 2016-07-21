@@ -33,7 +33,7 @@
 			}, 1000);
 			// Construct app and load initial path
 			$(function() {
-				app = new haste('hastebin', { twitter: true });
+				app = new haste('hastebin', { twitter: false });
 				handlePop({ target: window });
 
 				$('.dropdown dt span').click(function() {
@@ -79,8 +79,8 @@
 						<span>Theme</span></dt>
 					<dd>
 						<ul>
-							<li><span><span class="selected-theme">&bull;</span>Solarized Dark<span class="value">solarized-dark</span></span></li>
 							<li><span><span class="selected-theme">&bull;</span>Tomorrow<span class="value">tomorrow</span></span></li>
+							<li><span><span class="selected-theme">&bull;</span>Solarized Dark<span class="value">solarized-dark</span></span></li>
 							<li><span><span class="selected-theme">&bull;</span>Tomorrow Night<span class="value">tomorrow-night</span></span></li>
 						</ul>
 					</dd>
