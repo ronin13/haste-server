@@ -2,9 +2,8 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var https = require('https');
+var client_token = '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com';
 
-var LEX = require('letsencrypt-express').testing();
-var express = require('express');
 
 var winston = require('winston');
 var connect = require('connect');
@@ -13,12 +12,17 @@ var connect_st = require('st');
 var connect_rate_limit = require('connect-ratelimit');
 
 var DocumentHandler = require('./lib/document_handler');
+var express = require('express');
 
 // Load the configuration and set some defaults
 var config = JSON.parse(fs.readFileSync('./config.js', 'utf8'));
 config.port = process.env.PORT || config.port || 7777;
 config.host = process.env.HOST || config.host || 'localhost';
 config.local = process.env.LOCAL || 'remote';
+
+if (config.local === 'lex') {
+    var LEX = require('letsencrypt-express').testing();
+}
 
 if (config.local === 'local') {
     var options = {
@@ -130,7 +134,7 @@ app.use(route(function(router) {
     var skipExpire = !!config.documents[request.params.id];
     var key = request.params.id.split('.')[0];
     token = request.headers['x-token'].toString();
-    if (documentHandler.validateToken(token, '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com' )) {
+    if (documentHandler.validateToken(token, client_token )) {
         winston.warn('Failed authentication');
         response.writeHead(403, { 'content-type': 'application/json' });
         response.end(
@@ -143,7 +147,7 @@ app.use(route(function(router) {
   // add documents
   router.post('/documents', function(request, response, next) {
     token = request.headers['x-token'].toString();
-    if (documentHandler.validateToken(token, '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com')) {
+    if (documentHandler.validateToken(token, client_token )) {
         winston.warn('Failed authentication');
         response.writeHead(403, { 'content-type': 'application/json' });
         response.end(
@@ -159,7 +163,7 @@ app.use(route(function(router) {
     var skipExpire = !!config.documents[request.params.id];
     console.dir(request.headers);
     token = request.headers['x-token'].toString();
-    if (documentHandler.validateToken(token, '996835855095-a2rm7pqlgihikeq2vmcu1ak28rrbc9n1.apps.googleusercontent.com' )) {
+    if (documentHandler.validateToken(token, client_token )) {
         winston.warn('Failed authentication');
         response.writeHead(403, { 'content-type': 'application/json' });
         response.end(
